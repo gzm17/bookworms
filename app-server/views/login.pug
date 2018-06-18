@@ -1,0 +1,10 @@
+include _header2
+h3 Log in
+br
+.container
+    form(action='/login', method='post')
+      input.form-control(name='username', type='text', placeholder='Username', required='', autofocus='')
+      br
+      input.form-control(name='password', type='password', placeholder='Password', required='')
+      br
+      input.btn.btn-primary.btn-block(type='submit', value='Log in')

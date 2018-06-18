@@ -1,0 +1,14 @@
+<% include _header %>
+
+<% if ((currentUser) && (currentUser.id === user.id)) { %>
+    <a href="/edit" class="pull-right">Edit your profile</a>
+<% } %>
+<br>
+<h3>user is <%= user.name() %> / currentUser is <% if(currentUser) {%><%=currentUser.username%><% } %></h3>
+<h4>Joined on <%= user.createdAt %></h4>
+
+<% if (user.bio) { %>
+    <p><%= user.bio %></p>
+<% } %>
+
+<% include _footer %>

@@ -1,0 +1,123 @@
+<% include _header %>
+
+
+<div class="row" style="vertical-align: middle; margin-top: 10px;">
+
+    <div class="col-sm-3" style="height: 40px">
+        <button class="btn btn-primary" id="submitlending">Update Lending</button>
+    </div>
+    <div id="msg" class="col-sm-9"></div>
+</div> 
+
+<div id="displayBody"></div>
+
+<script>
+var books = <%- JSON.stringify(books) %>;
+var lendBooks = Array(books.length), lendDuration = Array(books.length);
+    lendBooks.fill(0); //Used as a flag to indicate if book i is picked: if 0, it is not, else is. 
+    lendDuration.fill(30); //use 30 days as default 
+var selected = 0;
+    
+$(document).ready(function(){
+    var h4Yes = "List of requested books below: ", h4No = "No requested books.";
+    $("#displayBody").empty(); //clear the screen
+    if (books.length > 0) $("#displayBody").append("<h4 style=\"margin-top: -5px;\">"+h4Yes+"</h3><br>");
+    if (books.length === 0) $("#displayBody").append("<h4 style=\"margin-top: -5px;\">"+h4No+"</h3><br>");
+    displayBooks();
+    
+    if(books.length === 0) {
+        $("#submitlending").hide();
+        $("#msg").html("You dont have books other people are interested in.");
+    }
+    
+    if (selected > 0) $("#submitlending").show(); else $("#submitlending").hide();
+    
+    
+    $("#submitlending").click(function(){
+        console.log("at submit");
+        var booksToLend = [], selectionEmpty = true;
+        for (let i = 0; i < books.length; i++) 
+            if (lendBooks[i] === 1) {
+                books[i].duration = lendDuration[i];
+                booksToLend.push(books[i]);
+                selectionEmpty = false;
+        }
+        
+        if(selectionEmpty) alert("No books are borrowed.");
+        else { //submit selection to servers
+            console.log("lendbooks: ", booksToLend);
+            $.ajax({
+                url: "/lendbooks/confirmation",
+                type: 'POST',
+                contentType: 'application/x-www-form-urlencoded', //'application/json' did not returned empty content. this one works
+                dataType: 'json',
+                data: {uploaded: JSON.stringify(booksToLend)},
+                success: function(){
+                    window.location("/requestbooks");
+                    alert("Requests sent.")
+                    console.log("success");
+                }
+                //, success: _madeSave.bind(this)
+                //, processData: false //Doesn't help
+                });
+        }
+    });
+    
+});
+
+function displayBooks(){
+    $("#displayBody").empty();
+    var topLine = // adding top line
+        "<div class=\"row\" ><div class=\"col-sm-10\" style=\"margin-left: -15px; \"><span>REQUESTS FROM OTHERS: I have " + books.length + " books others want to borrow. </span> &nbsp &nbsp <a href=\"/requestbooks\" onclick=\"handleRequestsClick()\">Request More Books</a></div>" +
+        "<div class=\"col-sm-2\"></div>" +
+        "</div>";
+    var booksBody = "<div class=\"row\" style=\"margin-top: 15px; white-space: nowrap; overflow: auto !important\">";
+    for (let i = 0; i < books.length; i++){
+        console.log("thumbnail: ", books[i].thumbnail);
+        booksBody += "<div style=\"display: inline-block; *display: inline; width: 210px;\">" +
+            "<img src=\"" + books[i].thumbnail + "\" class=\"img-rounded\" style=\"height: 150px; width: 110px;margin-left: auto; margin-right:auto;\"><br><span>"+books[i].numRequests+" people requested</span><br>"+
+            "<span>Avg asked duration: "+ books[i].requestDuration+ " days</span><br>";
+        
+        // add lending actions
+        booksBody += "<br><a id=\"lend-"+i+"\" href=\"#\" onclick=\"handleLendingRequest("+i+")\">Lend This Book</a><br>" +
+            "<span id=\"lendduration-"+i+"\">Lend duration: "+ lendDuration[i]+ " days &nbsp</span><span id=\"minus-"+i+"\" onclick=\"handleLendingMinusClick("+i+")\">&#8681</span><span id=\"plus-"+i+"\" onclick=\"handleLendingPlusClick("+i+")\"> &#8679</span><br></div>"; 
+
+    }
+    booksBody += "</div>";
+    $("#displayBody").append(topLine + booksBody);
+    
+}
+
+function handleLendingRequest(i) {
+    var click = "#lend-" + i;
+    console.log("lend value = ", $(click).html());
+    if ($(click).html() === "Lend This Book") {
+        $(click).html("Confirmed to Lent");
+        selected += 1;
+        //$(click).css("background-color", "#a3d4ec");
+        lendBooks[i] = 1;
+    }
+    else {
+        $(click).html("Lend This Book");
+        //$(button).css("background-color", "#0082bd");
+        lendBooks[i] = 0;
+        selected -= 1; 
+    }
+    
+    if (selected > 0) $("#submitlending").show(); else $("#submitlending").hide();
+
+}
+
+function handleLendingMinusClick(i){
+    lendDuration[i] -= 1;
+    $("#lendduration-"+i).html("Lend duration: "+lendDuration[i]+" days &nbsp");
+}
+
+function handleLendingPlusClick(i){
+    lendDuration[i] += 1;
+    $("#lendduration-"+i).html("Lend duration: "+lendDuration[i]+" days &nbsp");
+}
+
+</script>
+
+<% include _footer %>

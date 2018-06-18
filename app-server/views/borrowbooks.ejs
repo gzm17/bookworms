@@ -1,0 +1,130 @@
+<% include _header %>
+
+
+<div class="row" style="vertical-align: middle; margin-top: 10px">
+
+    <div class="col-sm-3" style="height: 40px">
+        <button class="btn btn-primary" id="submitborrowing">Update Borrowing</button>
+    </div>
+    <div class="col-sm-9"><span id="topmsg"></span></div>
+</div> 
+
+<div id="displayBody"></div>
+
+<script>
+var books = <%- JSON.stringify(books) %>;
+var confirmed = 0;
+var borrowBooks = Array(books.length), borrowDuration = Array(books.length);
+    borrowBooks.fill(0); //Used as a flag to indicate if book i is picked: if 0, it is not, else is. 
+    borrowDuration.fill(30); //use 30 days as default 
+    
+$(document).ready(function(){
+    var h4Yes = "List of requested books below: ", h4No = "No requested books.";
+    $("#displayBody").empty(); //clear the screen
+    if (books.length > 0) $("#displayBody").append("<h4 style=\"margin-top: -5px;\">"+h4Yes+"</h3><br>");
+    if (books.length === 0) $("#displayBody").append("<h4 style=\"margin-top: -5px;\">"+h4No+"</h3><br>");
+    displayBooks();
+    
+    if(confirmed > 0) $("#submitborrowing").show();
+    else $("#submitborrowing").hide();
+    
+    $("#submitborrowing").click(function(){
+        console.log("at submit");
+        var booksToBorrow = [], selectionEmpty = true;
+        for (let i = 0; i < books.length; i++) 
+            if (borrowBooks[i] === 1) {
+                books[i].duration = borrowDuration[i];
+                booksToBorrow.push(books[i]);
+                selectionEmpty = false;
+        }
+        
+        if(selectionEmpty) alert("No books are borrowed.");
+        else { //submit selection to servers
+            console.log("borrowbooks: ", booksToBorrow);
+            $.ajax({
+                url: "/borrowbooks/confirmation",
+                type: 'POST',
+                contentType: 'application/x-www-form-urlencoded', //'application/json' did not returned empty content. this one works
+                dataType: 'json',
+                data: {uploaded: JSON.stringify(booksToBorrow)},
+                success: function(){
+                    alert("Borrow record updated.");
+                    window.location("/borrowbooks");                   
+                    console.log("success");}
+                //, success: _madeSave.bind(this)
+                //, processData: false //Doesn't help
+                });
+        }
+    });
+    
+});
+
+function displayBooks(){
+    $("#displayBody").empty();
+    // calculate how many books have been confirmed by lender
+    var num = 0;
+    for (let i = 0; i < books.length; i++)
+        if (books[i].status === "Lender Confirmed")
+            num += 1;
+            
+    var topLine = // adding top line
+        "<div class=\"row\" ><div class=\"col-sm-10\" style=\"margin-left: -15px; \"><span>MY REQUESTS: I have requested " + books.length + " books for borrowing and "+num+" is confirmed by lender. </span> &nbsp &nbsp <a href=\"/requestbooks\" onclick=\"handleRequestsClick()\">Request More Books</a></div>" +
+        "<div class=\"col-sm-2\"></div>" +
+        "</div>";
+    var booksBody = "<div class=\"row\" style=\"margin-top: 15px; align-items: baseline; white-space: nowrap; overflow: auto !important\">";
+    for (let i = 0; i < books.length; i++){
+        console.log("thumbnail: ", books[i].thumbnail);
+        booksBody += "<div style=\"display: inline-block; *display: inline; width: 160px;\">" +
+            "<img src=\"" + books[i].thumbnail + "\" class=\"img-rounded\" style=\"height: 150px; width: 110px;margin-left: auto; margin-right:auto; \"><br><span>Owner: "+books[i].ownerOfBook+"</span><br>"+
+            "<span>Duration: "+ books[i].duration+ " days</span><br>";
+        
+        if (books[i].status == "Lender Confirmed") {
+            booksBody += "<a id=\"click-"+i+"\" href=\"#\" onclick=\"handleConfirmBorrowing("+i+")\">Confirm Borrowing</a></div>";
+        }
+        else 
+            booksBody += "<span>Status: "+ books[i].status+ "</span><br></div>";
+    }
+    
+    /*
+    var booksBody = "<div class=\"row\" style=\"margin-top: 15px; white-space: nowrap; overflow: auto !important\">";
+    for (let i = 0; i < books.length; i++){
+        console.log("thumbnail: ", books[i].thumbnail);
+        booksBody += "<div style=\"display: inline-block; *display: inline; width: 160px;\">" +
+            "<img src=\"" + books[i].thumbnail + "\" class=\"img-rounded\" style=\"height: 150px; width: 110px;margin-left: auto; margin-right:auto;\"><br><span>Owner: "+books[i].ownerOfBook+"</span><br>"+
+            "<span id=\"duration-"+i+"\">"+ requestDuration[i]+ " days &nbsp </span><span id=\"minus-"+i+"\" onclick=\"handleMinusClick("+i+")\">&#8681</span><span id=\"plus-"+i+"\" onclick=\"handlePlusClick("+i+")\"> &#8679</span><br>"+
+            "<a id=\"click-"+i+"\" href=\"#\" onclick=\"handleBorrowRequest("+i+")\">Request Book</a></div>";
+    }    
+    
+    
+    */
+    
+    booksBody += "</div>";
+    $("#displayBody").append(topLine + booksBody);
+
+}
+
+function handleConfirmBorrowing(i) {
+    var click = "#click-" + i;
+    console.log("click value = ", $(click).html());
+    if ($(click).html() === "Confirm Borrowing") {
+        $(click).html("Borrowing Confirmed");
+        confirmed += 1;
+        //$(click).css("background-color", "#a3d4ec");
+        borrowBooks[i] = 1;
+    }
+    else {
+        $(click).html("Confirm Borrowing");
+        //$(button).css("background-color", "#0082bd");
+        borrowBooks[i] = 0;
+        confirmed -= 1;
+    }
+    
+    if(confirmed > 0) 
+        $("#submitborrowing").show();
+    else 
+        $("#submitborrowing").hide();
+}
+
+</script>
+
+<% include _footer %>

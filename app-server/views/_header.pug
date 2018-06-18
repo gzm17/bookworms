@@ -1,0 +1,63 @@
+doctype html
+head
+  meta(charset='utf-8')
+  title= title
+  link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css')
+  link(rel='stylesheet', type='text/html', href='vote_styles.css')
+  script(src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js')
+  script(src='https://d3js.org/d3.v4.min.js')
+.navbar.navbar-default.navbar-static-top(role='navigation')
+  .container
+    .navbar-header
+      a.navbar-brand(href='/', style='font-size: 30px; color: #009999; font-weight: bold')
+        span= title
+    ul.nav.navbar-nav.navbar-right
+        
+        if currentUser
+            li
+                a(href='/edit')
+                    span Hello, #{currentUser.name()}
+            li
+                a(href='/users/polls/add') 
+                    span Add polls
+            li
+                a(href='/logout')
+                    span Log out
+        else
+                        
+            li
+                a(href='/login')
+                    span Log in
+            li
+                a(href='/signup')
+                    span Sign up          
+  #searchbar.container
+    .row
+        .nav.navbar-nav.navbar-left(style='list-style-type: none')
+        .col-sm-1(style='margin-top: 15px')
+            span City name: 
+        .col-sm-5
+          form.navbar-form.navbar-left(action='/', method='post')
+              .input-group
+                input#cityname.form-control(type='text', placeholder='Search', style='width: 200px')
+                .input-group-btn
+                  button#searchbutton.btn.btn-default(type='submit')
+                    i.glyphicon.glyphicon-search    
+        .col-sm-1(style='margin-top: 15px')
+            span Filter data:
+        .col-sm-5
+            form.navbar-form.navbar-left(action='javascript:void(0);')
+              .input-group
+                input#filterdata.form-control(type='text', placeholder='Search', style='width: 300px')
+                .input-group-btn
+                  button#searchbutton.btn.btn-default(type='submit')
+                    i.glyphicon.glyphicon-search
+#body.container
+    each val in errors
+        .alert.alert-danger(role='alert')
+            #{val}
+
+    each val in infos
+        .alert.alert-info(role='alert')
+            #{info}
+

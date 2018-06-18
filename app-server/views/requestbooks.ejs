@@ -1,0 +1,140 @@
+<% include _header %>
+
+
+<div class="row" style="vertical-align: middle; margin-top: 10px">
+
+    <div class="col-sm-3" style="height: 40px">
+        <button class="btn btn-primary" id="submitrequest">Send Requests</button>
+    </div>   
+    <div class="col-sm-9">
+    </div>
+</div> 
+
+<div id="availablebooks" class="col-sm-12" style="margin-top: 0px; height: 250px; width: 100%;"></div>
+<br>
+<hr>
+<div id="myrequestedbooks" class="col-sm-12" style="margin-top: 50px; height: 200px; width: 100%;"></div>
+
+<script>
+var books = <%- JSON.stringify(books) %>
+var myrequestedbooks = <%- JSON.stringify(myrequestedbooks) %>
+var selected = 0;
+var requestBooks = Array(books.length), requestDuration = Array(books.length);
+    requestBooks.fill(0); //Used as a flag to indicate if book i is picked: if 0, it is not, else is. 
+    requestDuration.fill(30); //use 30 days as default 
+    
+$(document).ready(function(){
+    var h4Yes = "Search results below:", h4No = "No record found. Search again.";
+    $("#displayBody").empty(); //clear the screen
+    if (books.length > 0) $("#displayBody").append("<h4 style=\"margin-top: -5px;\">"+h4Yes+"</h3><br>");
+    if (books.length === 0) $("#displayBody").append("<h4 style=\"margin-top: -5px;\">"+h4No+"</h3><br>");
+    displayBooks();
+    displayMyRequestedBooks();
+    
+           
+    if(selected > 0) $("#submitrequest").show();
+    else $("#submitrequest").hide();
+
+    $("#submitrequest").click(function(){
+        console.log("at submit");
+        var booksRequested = [], selectionEmpty = true;
+        for (let i = 0; i < books.length; i++) 
+            if (requestBooks[i] === 1) {
+                books[i].duration = requestDuration[i];
+                booksRequested.push(books[i]);
+                selectionEmpty = false;
+        }
+        
+        if(selectionEmpty) alert("No books are requested. Select books please.");
+        else { //submit selection to servers
+            console.log("requestbooks: ", booksRequested);
+            $.ajax({
+                url: "/requestbooks/sendrequests",
+                type: 'POST',
+                contentType: 'application/x-www-form-urlencoded', //'application/json' did not returned empty content. this one works
+                dataType: 'json',
+                data: {uploaded: JSON.stringify(booksRequested)},
+                success: function(){
+                    window.location("/requestbooks");
+                    alert("Requests sent.")
+                    console.log("success");
+                }
+                //, success: _madeSave.bind(this)
+                //, processData: false //Doesn't help
+                });
+        }
+    });
+    
+});
+
+function displayBooks(){
+    $("#availablebooks").empty();
+    var topLine = // adding top line
+        "<div class=\"row\" ><div class=\"col-sm-10\" style=\"margin-left: -15px; \"><span>BOOKS AVAILABLE: There are " + books.length + " books available in the community for borrowing. </span>&nbsp &nbsp <a href=\"/getbooks\">Get More Books</a></div>" +
+        "<div class=\"col-sm-2\"></div>" +
+        "</div>";
+    var booksBody = "<div class=\"row\" style=\"margin-top: 15px; white-space: nowrap; overflow: auto !important\">";
+    for (let i = 0; i < books.length; i++){
+        console.log("thumbnail: ", books[i].thumbnail);
+        booksBody += "<div style=\"display: inline-block; *display: inline; width: 160px;\">" +
+            "<img src=\"" + books[i].thumbnail + "\" class=\"img-rounded\" style=\"height: 150px; width: 110px;margin-left: auto; margin-right:auto;\"><br><span>Owner: "+books[i].ownerOfBook+"</span><br>"+
+            "<span id=\"duration-"+i+"\">"+ requestDuration[i]+ " days &nbsp </span><span id=\"minus-"+i+"\" onclick=\"handleMinusClick("+i+")\">&#8681</span><span id=\"plus-"+i+"\" onclick=\"handlePlusClick("+i+")\"> &#8679</span><br>"+
+            "<a id=\"click-"+i+"\" href=\"#\" onclick=\"handleBorrowRequest("+i+")\">Request Book</a></div>";
+    }
+    booksBody += "</div>";
+    if(books.length === 0) $("#availablebooks").height(40);
+    $("#availablebooks").append(topLine + booksBody);
+    
+}
+    
+function displayMyRequestedBooks(){
+    $("#myrequestedbooks").empty();
+    var topLine = // adding top line
+        "<div class=\"row\" ><div class=\"col-sm-10\" style=\"margin-left: -15px; \"><span>MY REQUESTS: I have requested " + myrequestedbooks.length + " books to borrow </span></div>" +
+        "<div class=\"col-sm-2\"></div>" +
+        "</div>";
+    var booksBody = "<div class=\"row\" style=\"margin-top: 15px; white-space: nowrap; overflow: auto !important\">";
+    for (let i = 0; i < myrequestedbooks.length; i++){
+        console.log("thumbnail: ", myrequestedbooks[i].thumbnail);
+        booksBody += "<div style=\"display: inline-block; *display: inline; width: 160px;\">" +
+            "<img src=\"" + myrequestedbooks[i].thumbnail + "\" class=\"img-rounded\" style=\"height: 150px; width: 110px;margin-left: auto; margin-right:auto;\"><br><span>Owner: "+myrequestedbooks[i].ownerOfBook+"</span><br>"+
+            "<span>Durtion: "+ myrequestedbooks[i].duration+ " days &nbsp </span></div>";
+    }
+    booksBody += "</div>";
+    $("#myrequestedbooks").append(topLine + booksBody);
+    
+}
+
+function handleBorrowRequest(i) {
+    var click = "#click-" + i;
+    console.log("click value = ", $(click).html());
+    if ($(click).html() === "Request Book") {
+        $(click).html("Requested");
+        selected += 1;
+        //$(click).css("background-color", "#a3d4ec");
+        requestBooks[i] = 1;
+    }
+    else {
+        $(click).html("Request Book");
+        //$(button).css("background-color", "#0082bd");
+        requestBooks[i] = 0;
+        selected -= 1;
+    }
+        
+    if(selected > 0) $("#submitrequest").show();
+    else $("#submitrequest").hide();
+    
+}
+
+function handleMinusClick(i){
+    requestDuration[i] -= 1;
+    $("#duration-"+i).html(requestDuration[i]+" days &nbsp");
+}
+
+function handlePlusClick(i){
+    requestDuration[i] += 1;
+    $("#duration-"+i).html(requestDuration[i]+" days &nbsp");
+}
+</script>
+
+<% include _footer %>

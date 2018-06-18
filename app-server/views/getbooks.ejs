@@ -1,0 +1,126 @@
+<% include _header %>
+
+
+<div class="row" style="vertical-align: middle; margin-top: 20px">
+
+    <div class="col-sm-6">
+        <form class="navbar-form navbar-left" method="post" action="/searchbooks">
+            <div class="input-group">
+                <input type="text" class="form-control" name="title" placeholder="Enter book title here to search" style="width: 300px; margin-left: -15px; margin-top: -15px">
+                <div class="input-group-btn">
+                    <button class="btn btn-default" type="submit" style="margin-top: -15px">
+                    <i class="glyphicon glyphicon-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-sm-3"></div>   
+    <div class="col-sm-3">
+        <button class="btn btn-primary" id="submitselectoin">Get Selections</button>
+    </div>
+</div> 
+<br>
+
+<div id="displayBody"></div>
+
+<script>
+var books = <%- JSON.stringify(books) %>;
+var getBooks = Array(books.length);
+    getBooks.fill(0); //Used as a flag to indicate if book i is picked: if 0, it is not, else is. 
+    
+$(document).ready(function(){
+    var isLoggedIn = <%= (typeof currentUser != "undefined" ? Boolean(currentUser) : false) %>, count;
+    if (isLoggedIn) console.log("user IS logged in, data=", books.length, books); else console.log("user NOT logged in");
+    // empty content in "displayBody" div area
+    var h4Yes = "Search results below:", h4No = "No record found. Search again.";
+    $("#displayBody").empty(); //clear the screen
+    if (books.length > 0) $("#displayBody").append("<h4 style=\"margin-top: -5px;\">"+h4Yes+"</h3><br>");
+    if (books.length === 0) $("#displayBody").append("<h4 style=\"margin-top: -5px;\">"+h4No+"</h3><br>");
+    displaySearchResults(books, isLoggedIn);
+    
+    $("#submitselectoin").click(function(){
+        console.log("at submit");
+        var booksSelected = [], selectionEmpty = true;
+        for (let i = 0; i < books.length; i++) 
+            if (getBooks[i] === 1) {
+                booksSelected.push(books[i]);
+                selectionEmpty = false;
+        }
+        
+        if(selectionEmpty) alert("No books are selected. Select books please.");
+        else { //submit selection to servers
+            $.ajax({
+                url: "/getbooks/selectedbooks",
+                type: 'POST',
+                contentType: 'application/x-www-form-urlencoded', //'application/json' did not returned empty content. this one works
+                dataType: 'json',
+                data: {uploaded: JSON.stringify(booksSelected)},
+                success: function(){console.log("success");}
+                //, success: _madeSave.bind(this)
+                //, processData: false //Doesn't help
+                });
+            alert("Selected books saved.")
+        }
+    });
+    
+});
+
+    
+function displaySearchResults(books, loggedIn){
+    var i, book="";
+    
+    //console.log("displaybars: ", bars, barbito, loggedIn);
+    //book = "<div style=\"overflow: scroll;\">";
+    for ( i = 0; i < books.length; i++) {
+        if (books[i].saleInfo.saleability === "FOR_SALE") {
+        book =  book +
+            "<div class=\"panel panel-default panel-body\">" +
+            "<div class=\"row\"> " +
+            "<div class=\"col-sm-2\" style=\"text-align: center\">" +
+                "<img src=\"" + books[i].volumeInfo.imageLinks.thumbnail + "\" class=\"img-rounded\" style=\"height: 150px; width: 110px;margin-left: auto; margin-right:auto;\">" +
+            "</div>" +
+
+            "<div class=\"col-sm-8\">" +
+                "<span>Title: " + books[i].volumeInfo.title +"</span><br>" +
+                "<span>Authors: " + books[i].volumeInfo.authors[0] + books[i].volumeInfo.authors[1]+"</span><br>" +
+                "<span>Price: " + books[i].saleInfo.retailPrice.currencyCode + " " + books[i].saleInfo.retailPrice.amount+"</span><br>" +
+                "<span>Published on " + books[i].volumeInfo.publishedDate + " by " + books[i].volumeInfo.publisher +"</span><br>" +
+                //"<span>Description: " + books[i].volumeInfo.description +"</span><br>" +
+            "</div>";
+
+            //Put button selector
+            book = book +
+                "<div class=\"col-sm-2\">" +
+                    "<br><button id=\"button-" + i + "\" type=\"button\" onclick=\"handleGetBookClick(" + i + ")\" class=\"btn btn-primary\">Select</button>" +
+                "</div>" +
+                "</div></div>";
+            //console.log("bars-id: ", i, going.bar);
+        }
+
+        }
+    //book = book + "</div>";
+
+        $("#displayBody").append(book);
+}
+
+
+function handleGetBookClick(i) {
+    var button = "#button-" + i;
+    console.log("button value = ", $(button).html());
+    if ($(button).html() === "Select") {
+        $(button).html("Selected");
+        $(button).css("background-color", "#a3d4ec");
+        getBooks[i] = 1;
+    }
+    else {
+        $(button).html("Select");
+        $(button).css("background-color", "#0082bd");
+    }
+    
+}
+    
+</script>
+
+<% include _footer %>

@@ -1,0 +1,14 @@
+include _header2
+
+
+h3 Sign up
+br
+.container
+    form(action='/signup', method='post')
+      input.form-control(name='username', type='text', placeholder='Username', required='', autofocus='')
+      br
+      input.form-control(name='password', type='text', placeholder='Password', required='')
+      br
+      input.btn.btn-primary.btn-block(type='submit', value='Sign up')
+
+

@@ -1,0 +1,127 @@
+<% include _header %>
+
+
+<div id="mybooks" class="col-sm-12" style="margin-top: -0px; height: 200px; width: 100%"></div>
+<br>
+<hr>
+<div id="myborrowedbooks" class="col-sm-12" style="margin-top: 20px; height: 230px; width: 100%;"></div>
+<br>
+<hr>
+<div id="mylentbooks" class="col-sm-12" style="margin-top: 40px; height: 200px; width: 100%;"></div>
+
+
+<script>
+var myBooks = <%- JSON.stringify(mybooks) %>
+var myBorrowedBooks = <%- JSON.stringify(myborrowedbooks) %>
+var myLentBooks = <%- JSON.stringify(mylentbooks) %>
+var myRequests = <%- JSON.stringify(myrequestedbooks) %>
+
+console.log("myBorrowedBooks", myBorrowedBooks);
+console.log("myLentBooks", myLentBooks);
+
+    
+$(document).ready(function(){
+    
+    displayMyBooks();
+    displayMyBorrowedBooks();
+    displayMyLentBooks();
+    
+});
+                  
+function displayMyBooks(){
+    $("#mybooks").empty();
+    var topLine = // adding top line
+        "<div class=\"row\"><div class=\"col-sm-10\" style=\"margin-left: -15px;\"><span>MY OWNED BOOKS: I own total " + myBooks.length + " books. </span>&nbsp &nbsp <a href=\"/getbooks\">Get More Books</a></div>" +
+        "<div class=\"col-sm-2\"></div>" +
+        "</div>";
+    var booksBody = "<div class=\"row\" style=\"margin-top: 15px; white-space: nowrap; overflow-x: auto !important\">";
+    for (let i = 0; i < myBooks.length; i++){
+        booksBody += "<div style=\"display: inline-block; *display: inline; width: 130px;\">" +
+            "<img src=\"" + myBooks[i].thumbnail + "\" class=\"img-rounded\" style=\"height: 150px; width: 110px;margin-left: auto; margin-right:auto;\"><p>"+myBooks[i].state+"</p></div>";
+    }
+    booksBody += "</div>";
+    if(myBooks.length === 0) $("#mybooks").height(40);
+    
+    $("#mybooks").append(topLine + booksBody);
+    
+}
+
+                  
+function displayMyBorrowedBooks(){
+    $("#myborrowedbooks").empty();
+    var topLine = // adding top line
+        "<div class=\"row\" ><div class=\"col-sm-10\" style=\"margin-left: -15px;\"><span>My BORROWED BOOKS: I have borrowed " + myBorrowedBooks.length + " books from others and "+myRequests.length+" outstanding requests. </span>&nbsp &nbsp<a href=\"/requestbooks\">Manage Requests</a> &nbsp &nbsp <a href=\"/borrowbooks\">Borrow Books</a></div>" +
+        "<div class=\"col-sm-2\"></div>" +
+        "</div>";
+    var booksBody = "<div class=\"row\" style=\"margin-top: 15px; white-space: nowrap; overflow-x: auto !important\">";
+    for (let i = 0; i < myBorrowedBooks.length; i++){
+        console.log("borrowedBooks: i, owner", i, myBorrowedBooks[i].ownerOfBook);
+        //calculate days due toISOString() method converts date to ISO format.
+        //in nodejs, new Date() has ISO format, but in brower chrome, it is differe t
+        var phrase = "";
+        if (myBorrowedBooks[i].duration > myBorrowedBooks[i].due) phrase = myBorrowedBooks[i].duration - myBorrowedBooks[i].due + " days to go";
+        else if (myBorrowedBooks[i].duration === myBorrowedBooks[i].due) phrase = "Due today!";
+        else phrase = "Overdue";
+        console.log("borrowedBooks day, today numDays = ", myBorrowedBooks[i].due);
+
+        booksBody += "<div style=\"display: inline-block; *display: inline; width: 130px;\">" +
+            "<img src=\"" + myBorrowedBooks[i].thumbnail + "\" class=\"img-rounded\" style=\"height: 150px; width: 110px;margin-left: auto; margin-right:auto;\"><br><span> Owner: "+myBorrowedBooks[i].ownerOfBook+"</span><br><span>"+phrase+"</span><br>"+
+            "<a href=\"#\" id=\"return-"+i+"\"onclick=\"handleReturnClick("+i+")\">Return Book</a></div>";
+    }
+    booksBody += "</div>";
+    if(myBorrowedBooks.length === 0) $("#myborrowedbooks").height(40);
+
+    //console.log("borrowedBooks - divs", booksBody);
+    $("#myborrowedbooks").append(topLine + booksBody);
+    
+}
+    
+function displayMyLentBooks(){
+    $("#mylentbooks").empty();
+    var topLine = // adding top line
+        "<div class=\"row\"><div class=\"col-sm-10\" style=\"margin-left: -15px;\"><span>MY LENT BOOKS: I have lent " + myLentBooks.length + " books to others. </span>&nbsp &nbsp<a href=\"/lendbooks\">Requests from Others</a></div>" +
+        "<div class=\"col-sm-2\"></div>" +
+        "</div>";
+    var booksBody = "<div class=\"row\" style=\"margin-top: 15px; white-space: nowrap; overflow-x: auto !important\">";
+    for (let i = 0; i < myLentBooks.length; i++){
+        console.log("thumbnail: ", myLentBooks[i].thumbnail);
+        //calculate days due
+        var day = 1000*60*60*24; //number of miliseconds in a day
+        var phrase = "";
+        if (myLentBooks[i].status === "Taken" && myLentBooks[i].duration > myLentBooks[i].due) phrase = myLentBooks[i].duration - myLentBooks[i].due + " days to go";
+        else if (myLentBooks[i].status === "Taken" && myLentBooks[i].duration === myLentBooks[i].due) phrase = "Due today!";
+        else if (myLentBooks[i].status === "Taken" ) phrase = "Overdue";
+        else phrase = "Offered/not taken";
+        console.log("lentBooks numDays = ", myLentBooks[i].due);
+        booksBody += "<div style=\"display: inline-block; *display: inline; width: 130px;\">" +
+            "<img src=\"" + myLentBooks[i].thumbnail + "\" class=\"img-rounded\" style=\"height: 150px; width: 110px;margin-left: auto; margin-right:auto;\"><br><span> Borrower: "+myLentBooks[i].borrower+"</span><br><span>" + phrase + "</span></div>";
+    }
+    booksBody += "</div>";
+    $("#mylentbooks").append(topLine + booksBody);
+    
+}
+    
+function handleGetBookClick() { //not used but kept for ref
+    window.location.href='/getbooks';
+}
+   
+function handleManageRequestClick() { //not used but kept for ref
+    window.location.href='/managerequests';
+}
+
+function handleBorrowBooksClick() { //not used but kept for ref
+    window.location.href='/borrowbooks';
+}
+    
+function handleLendoutClick() { //not used but kept for ref
+    window.location.href='/lendbooks';
+}
+
+function handleReturnClick(i) { //
+    console.log("clicked return book i = ", i);
+    if(confirm("Please confirm or cancel:"))
+        window.location.href='/returnbook/search?bookID='+myBorrowedBooks[i].bookID+"&owner="+myBorrowedBooks[i].ownerOfBook;
+}
+</script>
+
+<% include _footer %>

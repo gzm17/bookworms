@@ -1,0 +1,14 @@
+include _header2
+
+if ((currentUser) && (currentUser.id === user.id))
+    a.pull-right(href="/edit")
+        span Edit your profile
+br
+h3 user is #{user.name()} / currentUser is 
+    if(currentUser) #{currentUser.username}
+
+h4 Joined on #{user.createdAt}
+
+if (user.bio) 
+    p #{user.bio}
+

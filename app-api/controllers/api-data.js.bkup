@@ -1,0 +1,70 @@
+var fs = require('fs');
+const yelp = require('yelp-fusion');
+var apiKey = "AxR7GHwydNopgOG1RxrwAGoBD7cLTP72ll8rKw1mn2oEdl0T6nueop_etcZOiry9pwzwRQbGeLZ0SHmYoQT0K85m35T0pUB1eqS1mtzzfS7T0-rsFB8nGMmaR428WnYx"; //apiKey gotten from yelp-fusion account: gzm17 gzm.nyc mail
+const client = yelp.client(apiKey);
+
+module.exports.index = function(req, res, next) { 
+    var user = res.locals.currentUser;
+    
+    res.render("../../app-server/views/index", {bars: [], mybars: []});
+}
+
+//after post get data from yelp-fusion
+module.exports.getData = function(req, res, next) { 
+    var user = res.locals.currentUser;
+    
+    const searchRequest = {
+        term:'bars bar',
+        location: 'san francisco, ca'
+        //limit: 5
+    };
+
+    const client = yelp.client(apiKey);
+
+    client.search(searchRequest).then(response => {
+      const firstResult = response.jsonBody.businesses;
+      const prettyJson = JSON.stringify(firstResult, null, 4);
+      console.log(prettyJson, "\n", prettyJson.length, prettyJson.name);
+      fs.writeFile("datafile", prettyJson, function(err) {
+        if(err) {
+            return console.log(err);
+            }
+
+        console.log("The file was saved!");
+      }); 
+        
+      res.render("../../app-server/views/index", {bars: firstResult, mybars: []} );
+    }).catch(e => {
+      console.log(e);
+        next(e);
+    });
+}
+
+
+
+    /*
+    // find polls
+    Poll.find()
+    .sort({createdAt: "descending"})
+    .exec(function(err, polls) {
+        if(err) {return next(err);}
+    
+        // find polls with user as autor
+        if (typeof req.user !== "undefined") { // make sure user is defined
+            Poll.find({author: user._id})
+            .sort({createdAt: "descending"})
+            .exec(function(err, mypolls) {
+                if(err) {return next(err);}
+                res.render("index", {mypolls: mypolls, polls: polls});
+                //console.log("User defined: mypolls=", user_polls, " polls: ", diff_polls);
+                });
+            }
+    
+        if (typeof req.user === "undefined") { // make sure user is defined {
+            console.log("No user defined - entered");
+            res.render("index", {mypolls: [], polls: polls} );
+            }
+    });
+});
+
+*/

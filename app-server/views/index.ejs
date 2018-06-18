@@ -1,0 +1,113 @@
+<% include _header %>
+
+<% if (currentUser) { %>
+<script> window.location = "/mybooks"; </script>
+    <p>Temp content - to be deleted later: </p>
+    <br>
+    <a href="/getbooks">Click to get books</a>
+    <% } else { %>
+
+<h3>We borrow. We Lend. We Read. </h3>
+<h3>We are bookworms.</h3>
+<% } %>
+
+<script>
+    $(document).ready(function(){
+
+        // default display - listing all bars
+        //$("#body").empty(); //clear the screen
+        //$("#body").append("<h3 style=\"margin-top: -5px;\">We read. We borrow. We are bookworms.</h3>");
+        // displaybars(bars, barbito, isLoggedIn);
+    });
+
+    /*
+    function displaybars(bars, barbito, loggedIn){
+        var i, bar, phrase, gopath, nogopath;
+        //console.log("displaybars: ", bars, barbito, loggedIn);
+        for ( i = 0; i < bars.length; i++) {
+            bar =  
+                "<div class=\"panel panel-default panel-body\">" +
+                "<div class=\"row\"> " +
+                "<div class=\"col-sm-2\" style=\"text-align: center\">" +
+                    "<img src=\"" + bars[i].image_url + "\" class=\"img-rounded\" style=\"height: 70px; width: auto;margin-left: auto; margin-right:auto;\">" +
+                "</div>" +
+
+                "<div class=\"col-sm-6\">" +
+                    "<span>Name: " + bars[i].name +"</span><br>" +
+                    "<span>Rating: " + bars[i].rating +"</span><br>" +
+                    "<span>Price: " + bars[i].price +"</span><br>" +
+                    "<span>Address: " + bars[i].location.address1 + ", " + bars[i].location.city +", "+ "Phone: "+ bars[i].phone +"</span><br>" +
+                "</div>";
+            
+            //populating bar goer buttons
+            var user = "empty";
+            if (loggedIn) {
+                //console.log("Matching Loop: ", bars[i].name, barbito);
+                
+                // cross-check barbito with bars on people
+                var going = {
+                    bar: bars[i]._id,
+                    go: false,
+                    visit: {
+                        count: 0
+                    }};
+                
+                //cross check and calculate status of each bar and if user is going
+                var goers = [];
+                for (let j = 0; j < barbito.length; j++) 
+                    if ( going.bar === barbito[j].bar) {
+                        going.visit.count = barbito[j].visit.count;
+                        //console.log("match bar: bar name, barid, count: ", bars[i].name, going.bar, going.visit.count);
+                        //find if user is going
+                        for (let k = 0; k < barbito[j].visit.goers.length; k++) {
+                            if (barbito[j].visit.goers[k] === user){
+                                going.go = true;   
+                                console.log("match user/goer: ", going.go, user, barbito[j].visit.goers[k] );
+                            }
+                            goers.push(barbito[j].visit.goers[k]); //for display 
+                        }
+                        break;
+                    }
+                
+                //console.log("Goers = :", goers);
+                gopath = " href=\"/shops/go/search?go=yes&city=" + bars[i].location.city + "&bar=" + going.bar + "\" ";
+                nogopath = " style=\"color: grey\"";
+                if (going.go && going.visit.count > 0) {
+                    nogopath = " href=\"/shops/go/search?go=no&city=" + bars[i].location.city + "&bar=" + going.bar + "\" ";
+                    gopath = " style=\"color: grey\"";
+                }
+                
+                if (going.visit.count === 0) phrase = "<span>So far no one is going. </span>";
+                if (going.visit.count > 0) {
+                    phrase = "<div class=\"dropdown\">" + 
+                        "<a class=\"dropdown-toggle\" data-toggle=\"dropdown\" style=\"margin-left: -2px\">" 
+                        + going.visit.count + " people are going!" +
+                        "<span class=\"caret\"></span></a>" +
+                        "<ul class=\"dropdown-menu\">";
+                    
+                        for (let m = 0; m < goers.length; m++)
+                            phrase = phrase + "<li>" +"&nbsp;&nbsp;"+ goers[m] + "</li>";
+
+                        phrase = phrase + "</ul> </div>";
+                }
+                console.log("Phrase: ", phrase);
+                bar = bar +
+                    "<div class=\"col-sm-4\">" +
+                        "<a" + gopath +   ">I am going </a>" + "<br>" +
+                        "<a" + nogopath + ">I am not going </a>" + "<br>" +
+                        phrase +
+                        "</div>";
+                //console.log("bars-id: ", i, going.bar);
+                
+            }
+
+                
+            $("#body").append(bar);
+        
+    }
+    }
+*/    
+    
+</script>
+
+<% include _footer %>
