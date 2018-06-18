@@ -1,10 +1,10 @@
 var request = require("request");
 var apiOptions = {
-    server: "https://bookworms.herokuapp.com" // when run in heroku
+    server: "https://fccbookworms.herokuapp.com" // when run in heroku
     //server: "http://localhost:3000" //when run in local host
 };
 if (process.env.NODE_ENV === "production")
-    apiOptions.server = "https://fccbarhopping.herokuapp.com";
+    apiOptions.server = "https://fccbookworms.herokuapp.com";
 
 var renderViews = function (req, res, path, data) {
     //console.log("Enter view-ctrl render:", body);
